@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather</title>
+	<script src="lib/d3/d3.min.js"></script>
+
+
+</head>
+
+<style>
+
+body {
+  font: 16px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.y axis text{
+	font:10px;
+}
+
+
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+</style>
+
+<body>
+	<div id="header">
+		<h4>Weather</h4>
+	</div>
+	
+	<div id ="weather"></div>
+
+<script>
+	var weather_test=[];
+	var margin = {top: 20, right: 60, bottom: 60, left: 40},
+	width = window.innerWidth*0.5 - margin.left - margin.right,
+	height = window.innerHeight*0.6 - margin.top - margin.bottom; //130
+
+	var parseDate = d3.time.format("%Y%m").parse;
+	var x = d3.time.scale()
+		    .range([0, width]);
+   	var y = d3.scale.linear()
+     		.range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+	        .scale(x)
+	        .orient("bottom");
+
+	var yAxis = d3.svg.axis()
+	        .scale(y)
+	       .orient("left");
+	
+	var line = d3.svg.line()
+    	.x(function(d) { return x(d.date); })
+    	.y(function(d) { return y(d.days); });
+
+    var svg = d3.select("#weather").append("svg")
+    	.attr("width", width + margin.left + margin.right)
+    	.attr("height", height + margin.top + margin.bottom)
+  		.append("g")
+    	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+	d3.csv("data/Weather_raw.csv", function(err, weather) {
+			// var dates =[];		
+            console.log(weather);
+            preprocess(weather);
+            x.domain(d3.extent(weather_test, function(d) { return d.date; }));
+  			y.domain(d3.extent(weather_test, function(d) { return d.days; }));
+  			console.log(y.domain());
+
+			svg.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + height + ")")
+				.call(xAxis);
+
+			svg.append("g")
+				.attr("class", "y axis")
+				.call(yAxis)
+				.append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 6)
+				.attr("dy", ".71em")
+				.style("text-anchor", "end")
+				.text("Number of days with Heavy Rains");
+
+			svg.append("path")
+				.datum(weather_test)
+				.attr("class", "line")
+				.attr("d", line);
+       
+    });
+
+
+	function preprocess(data){
+
+		data.forEach(function(d){
+			if (d.CITY_NAME ==="Philadelphia, PA") {
+				// weather_test.push({d.DATE:d["Total snow fall"]); 
+			var rainydays ={date:parseDate(d["DATE"]), days:d["Number of days with greater than or equal to 1.0 inch of precipitation"]};
+			console.log(rainydays);
+			weather_test.push(rainydays);
+			}
+		});
+
+
+	}
+
+</script>	
+
+</body>
+
+</html>
